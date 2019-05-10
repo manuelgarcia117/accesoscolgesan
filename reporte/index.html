@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Reporte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link rel="icon" type="image/png" href="/images/favicon.png">
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/css/bootstrap.css" media="screen">
+  <link rel="stylesheet" href="/assets/css/custom.min.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css">
+  <!-- necesita /webfonts -->
+  <link rel="stylesheet" href="/assets/css/loading.css" media="all" type="text/css" />
+  <link rel="stylesheet" href="/assets/css/alertify.min.css" />
+  <link rel="stylesheet" href="/assets/css/alertify-default.min.css" />
+  <link rel="stylesheet" href="/assets/css/alertify-semantic.min.css" />
+
+  <!-- JavaScript -->
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/jquery.min.js"></script>
+  <script src="/assets/js/popper.min.js"></script>
+  <script src="/assets/js/bootstrap.min.js"></script>
+  <script src="/assets/js/custom.js"></script>
+  <script src="/assets/js/alertify.min.js"></script>
+  <script src="/assets/js/vue.js"></script>
+  <script src="/assets/js/jquery.twbsPagination.min.js"></script>
+  <script src="/assets/js/exportar.js"></script>
+  <!--<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>-->
+  
+</head>
+
+<body>
+  <div id="app">
+    <div id="loading" v-if="loading">
+      <div class="location_indicator"><img src="/images/logo.jpg" alt=""></div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+      <a class="navbar-brand d-none d-lg-block d-xl-block" href="#">
+        <img src="/images/logo.jpg" width="40px" class="img-responsive img-circle" alt="logo image">
+      </a>
+
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <a v-if="login" class="navbar-brand d-block d-lg-none d-xl-none" href="#">
+        <img src="/images/logo.jpg" width="40px" class="img-responsive img-circle" alt="logo image">
+      </a>
+
+      <div v-if="!login" class="d-block d-lg-none d-xl-none">
+        <div style="color: #fff;" class="dropdown-toggle mr-md-2" id="bd-versions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <img src="/images/default_avatar_male.jpg" width="40px" class="img-responsive img-circle" alt="profile image"> {{nombreUsuario}}
+        </div>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="bd-versions">
+          <a class="dropdown-item" href="/mi_perfil">Mi Perfil</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#" @click="cerrarSesion()">Cerrar Sesión</a>
+        </div>
+      </div>
+
+      <div class="collapse navbar-collapse" id="navbarColor01">
+        <ul class="navbar-nav mr-auto" v-if="funcionalidades.length > 0">
+          <template v-for="funcionalidad in funcionalidades">
+            <li class="nav-item active" v-if="urlActual == funcionalidad.url">
+              <a class="nav-link" :href="funcionalidad.url">{{funcionalidad.descripcion}}</a>
+            </li>
+            <li class="nav-item" v-else>
+              <a class="nav-link" :href="funcionalidad.url">{{funcionalidad.descripcion}}</a>
+            </li>
+          </template>
+          <li class="nav-item">
+              <a class="nav-link" href="#"  @click="cerrarSesion()">Cerrar Sesión</a>
+          </li>
+        </ul>
+        <template v-if="login">
+          <button 
+            style="margin-left:3px;"
+            class="btn btn-secondary btn-sm"  
+            type="button" class="btn btn-primary" 
+            data-toggle="modal" 
+            data-target="#modalLogin">
+            Iniciar Sesión
+          </button>
+        </template>
+        <template v-else>
+          <a class="navbar-brand d-none d-lg-block d-xl-block" href="/mi_perfil" title="Ir a mi perfil" data-original-title="Tooltip on bottom">
+            <img src="/images/default_avatar_male.jpg" width="40px" class="img-responsive img-circle" alt="profile image">
+          </a>
+          
+          <ul class="navbar-nav flex-row ml-md-auto " style="margin-left: 2px !important;">
+            <li class="nav-item dropdown d-none d-lg-block d-xl-block">
+              <a class="nav-item nav-link dropdown-toggle mr-md-2" href="#" id="bd-versions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {{nombreUsuario}}
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="bd-versions">
+                <a class="dropdown-item" href="/mi_perfil">Mi Perfil</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#" @click="cerrarSesion()">Cerrar Sesión</a>
+              </div>
+            </li>
+          </ul>
+        </template>
+      </div>
+    </nav>
+    
+    <div class="container" style="margin-top:80px;margin-bottom:100px">
+      <div class="frm-pred">
+          <div class="form-horizontal">
+            <legend class="text-center header">Accesos</legend>
+            <!--//panel-->
+            <div class="card">
+              <div class="card-header">
+                <div class="row">
+                  <div class="col-4">
+                    <label for="txtfecha1">Fecha Inicial</label>
+                    <input type="date" class="form-control form-control-sm" id="txtfecha1" v-model="reporte.fecha1" @change="listarAccesos()">
+                  </div>
+                  <div class="col-4">
+                    <label for="txtfecha2">Fecha Final</label>
+                    <input type="date" class="form-control form-control-sm" id="txtfecha2" v-model="reporte.fecha2" @change="listarAccesos()">
+                  </div>
+                  <div class="col-4">
+                    <label for="txtdocumento">Documento</label>
+                    <!--<input type="text" class="form-control" v-model="reporte.documento">-->
+                    <div class="input-group input-group-sm mb-3">
+                      <div class="input-group-prepend">
+                        <div class="input-group-text">
+                          <select v-model="reporte.tipoDocumento" @change="listarAccesos()">
+                            <template v-for="tipoDocumento in tipoDocumentos">
+                              <option :value="tipoDocumento.id">{{tipoDocumento.abreviacion}}</option>  
+                            </template>
+                          </select>
+                        </div>
+                      </div>
+                      <input type="text" class="form-control form-control-sm" id="txtdocumento" v-model="reporte.documento" @input="listarAccesos()">
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-4">
+                    <label for="txtTipoAcceso">Tipo Acceso</label>
+                    <select class="form-control form-control-sm" id="txtTipoAcceso" v-model="reporte.tipoAcceso" @change="listarAccesos()">
+                      <option value="">Todos</option>
+                      <template v-for="tipoAcceso in tipoAccesos">
+                        <option :value="tipoAcceso.id">{{tipoAcceso.descripcion}}</option>  
+                      </template>
+                    </select>
+                  </div> 
+                  <div class="col-4">
+                    <label for="txtPuntualidad">Dentro de horario</label> 
+                    <select class="form-control form-control-sm" id="txtPuntualidad" v-model="reporte.puntualidad" @change="listarAccesos()">
+                      <option value="">Todos</option>
+                      <option value="1">Si</option>
+                      <option value="0">No</option>
+                    </select>
+                  </div>
+                  <div class="col-4">
+                    <label for="txtjornada">Jornada</label>
+                    <select class="form-control form-control-sm" id="txtjornada" v-model="reporte.jornada" @change="listarAccesos()">
+                      <option value="">Todos</option>
+                      <template v-for="jornada in jornadas">
+                        <option :value="jornada.id">{{jornada.descripcion}}</option>  
+                      </template>
+                    </select>
+                  </div> 
+                </div>
+                <div class="row">
+                  <div class="col-8">
+                    <label for="txtsede">Sede</label>
+                    <select class="form-control form-control-sm" id="txtsede" v-model="reporte.sede" @change="listarAccesos()">
+                      <option value="">Todas</option>
+                      <template v-for="sede in sedes">
+                        <option :value="sede.id">{{sede.descripcion}}</option>  
+                      </template>
+                    </select>
+                  </div>
+                  <div class="col-4">
+                    <label for="txtgrado">Grado</label>
+                    <select class="form-control form-control-sm" id="txtgrado" v-model="reporte.grado" @change="listarAccesos()">
+                      <option value="">Todos</option>
+                      <template v-for="grado in grados">
+                        <option :value="grado.id">{{grado.descripcion}}</option>  
+                      </template>
+                    </select>
+                  </div> 
+                </div>
+                <div class="row">
+                  <div class="col-4">
+                    <label for="txtcurso">Curso</label>
+                    <select class="form-control form-control-sm" id="txtcurso" v-model="reporte.curso" @change="listarAccesos()">
+                      <option value="">Todos</option>
+                      <template v-for="curso in cursos">
+                        <option :value="curso.id">{{curso.descripcion}}</option>  
+                      </template>
+                    </select>
+                  </div>
+                  <div class="col-8"><br>
+                    <a href="#" class="btn btn-primary" @click="limpiarFiltros()"><em class="fa fa-eraser"></em> Limpiar filtros</a>
+                    <a v-if="accesos.length>0" href="#" class="btn btn-primary" @click="descargarXls()"><em class="fa fa-download"></em> Descargar</a>
+                  </div>
+                </div>
+              </div>
+            <div class="card-body">
+              <table class="table table-striped table-bordered table-list" id="tblreporte">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Documento</th>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                  </tr> 
+                </thead>
+                <tbody v-if="accesos.length>0">
+                  <template v-for="(acceso,index) in accesos">
+                    <tr :class="'grupag'+Math.ceil((index+1)/10)+' grupag'">
+                        <td align="center">{{acceso.usuario}}</td>
+                        <td align="center">{{acceso.documento}}</td>
+                        <td align="center">{{acceso.fecha}}</td>
+                        <td align="center">{{acceso.tipo}}</td>
+                    </tr>
+                  </template>
+                </tbody>
+                <tbody v-else>
+                  <tr>
+                    <td colspan=10 align="center">No hay registros para mostrar</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card-footer text-right" v-if="accesos.length>10">
+              <nav aria-label="Page navigation">
+                  <ul class="pagination pagination-sm" id="pagination" style="margin-bottom: 0px;"></ul>
+              </nav>
+            </div>
+          </div>  
+            <!--//fin panel-->
+        </div>
+      </div>
+    </div>
+    
+    <div v-html="footer" class="container" style="background-color: #eee; max-width: 100%;">
+
+    </div>
+    
+
+  <script>
+    var app = new Vue({
+      el: '#app',
+      data: {
+        urlActual: '/reporte',
+        login: true,
+        loading: true,
+        usuario: '',
+        nombreUsuario: '',
+        rangoDeFecha: false,
+        funcionalidades: [],
+        tipoDocumentos:[],
+        tipoAccesos:[],
+        accesos:[],
+        jornadas:[],
+        sedes:[],
+        grados:[],
+        cursos:[],
+        reporte:{
+          fecha1:'',
+          fecha2:'',
+          grado:'',
+          curso:'',
+          tipoDocumento:'',
+          documento:'',
+          tipoAcceso:'',
+          puntualidad:'',
+          jornada:'',
+          sede:'',
+          grado:'',
+          curso:''
+        },
+        footer: '<p>footer</p>'
+      },
+      created: function() {
+        this.listarFuncionalidades()
+        this.listarTipoDocumento()
+        this.cargarTipoAcceso()
+        this.listarJornadas()
+        this.listarAccesos()
+        this.listarSedes()
+        this.listarGrados()
+        this.listarCursos()
+      },
+      methods: {
+        cargarPerfil: function() {
+          var self = this
+          var frm = { }
+          $.post(url_servidor + "/mi_perfil/buscar.php", frm, function(data) {
+            if (data.estado == "OK") {
+              self.perfil.nombre = data.perfil[0].nombre;
+              self.perfil.correo = data.perfil[0].correo;
+              self.perfil.usuario = data.perfil[0].usuario;
+            }
+            else {
+              alertify.error(data.mensaje)
+            }
+          }, "json");
+        },
+        cerrarSesion: function() {
+          var self = this
+          self.loading = true
+          var frm = {}
+          $.post(url_servidor + "/usuario/logout.php", frm, function(data) {
+            if (data.estado == "OK") {
+              self.listarFuncionalidades()
+            }
+          }, "json");
+        },
+        listarFuncionalidades: function() {
+          var self = this
+          var frm = {urlActual:self.urlActual}
+          $.post(url_servidor+"/funcionalidad/listar.php", frm, function(data) {
+            if (data.estado == "OK") {
+              self.funcionalidades = data.funcionalidades
+              self.nombreUsuario = data.nombreUsuario
+              self.login = data.login
+              self.footer = data.footer
+              self.loading = false;
+            }
+            else {
+              self.funcionalidades = data.funcionalidades
+              self.login = data.login
+              self.footer = data.footer
+              self.loading = false;
+            }
+          }, "json");
+        },
+        listarTipoDocumento: function() {
+          var self = this
+          var frm = {
+            textoBusqueda : self.textoBusqueda
+          }
+          $.post(url_servidor+"/tipo_documento/listar.php", frm, function(data) {
+            if (data.estado == "OK") {
+              self.tipoDocumentos = data.tipoDocumentos
+            }
+            else {
+              self.tipoDocumentos = data.tipoDocumentos
+              alertify.error("Error al cargar tipos de documento")
+            }
+          }, "json");
+        },
+        cargarTipoAcceso: function() {
+          var self = this
+          var frm = { }
+          $.post(url_servidor + "/tipo_acceso/listar.php", frm, function(data) {
+            if (data.estado == "OK") {
+              self.tipoAccesos = data.tipoAccesos 
+            }
+            else {
+              self.tipoAccesos = data.tipoAccesos   
+            }
+          }, "json");
+        },
+        listarAccesos: function() {
+          var self = this
+          var frm = self.reporte;
+          if(frm.fecha1!=""&&frm.fecha2!=""&&frm.fecha1>frm.fecha2){
+            alertify.error("La fecha de inicio debe ser menor que la fecha final");  
+            self.reporte.fecha1="";
+            self.reporte.fecha2="";
+          }
+          else
+          if((frm.fecha1!=""&&frm.fecha2!="")||(frm.fecha1==""&&frm.fecha2=="")){
+            $.post(url_servidor+"/reporte/listar.php", frm, function(data) {
+              if (data.estado == "OK") {
+                self.accesos=data.accesos;
+                if(self.accesos.length>10){
+                  $(function () {
+                    $('#pagination').twbsPagination('destroy');
+                    window.pagObj = $('#pagination').twbsPagination({
+                        totalPages: Math.ceil(self.accesos.length/10),
+                        visiblePages: 5,
+                        onPageClick: function (event, page) {
+                          $(".grupag").slideUp(0);
+                          $(".grupag"+page).slideDown(0);    
+                        }
+                    }).on('page', function (event, page) {
+                    });
+                  });
+                }
+              }
+              else {
+                self.accesos = data.accesos
+              }
+            }, "json");
+          }
+        },
+        listarJornadas: function() {
+          var self = this
+          var frm={};
+          $.post(url_servidor+"/jornada/listar.php", frm, function(data) {
+            if (data.estado == "OK") {
+              self.jornadas = data.jornadas
+            }
+            else {
+              self.jornadas = data.jornadas
+            }
+          }, "json");
+        },
+        listarSedes: function() {
+          var self = this
+          var frm={};
+          $.post(url_servidor+"/sede/listar.php", frm, function(data) {
+            if (data.estado == "OK") {
+              self.sedes = data.sedes
+            }
+            else {
+              self.sedes = data.sedes
+            }
+          }, "json");
+        },
+        listarGrados: function() {
+          var self = this
+          var frm={};
+          $.post(url_servidor+"/grado/listar.php", frm, function(data) {
+            if (data.estado == "OK") {
+              self.grados = data.grados
+            }
+            else {
+              self.grados = data.grados
+            }
+          }, "json");6
+        },
+        listarCursos: function() {
+          var self = this
+          var frm={};
+          $.post(url_servidor+"/curso/listar.php", frm, function(data) {
+            if (data.estado == "OK") {
+              self.cursos = data.cursos
+            }
+            else {
+              self.cursos = data.cursos
+            }
+          }, "json");
+        },
+        limpiarFiltros: function() {
+          var self = this
+          self.reporte.fecha1='';
+          self.reporte.fecha2='';
+          self.reporte.grado='';
+          self.reporte.curso='';
+          self.reporte.tipoDocumento='';
+          self.reporte.documento='';
+          self.reporte.tipoAcceso='';
+          self.reporte.puntualidad='';
+          self.reporte.jornada='';
+          self.reporte.sede='';
+          self.reporte.grado='';
+          self.reporte.curso='';
+          self.listarAccesos();
+        },
+        descargarXls: function(){
+          var datos = document.getElementById("tblreporte");
+          Exporter.export(datos, 'reporte.xls', 'reporte');
+        }
+      }
+    })
+  </script>
+  <script src="../assets/js/bootstrap-datepicker.es.js"></script>
+  <script src="../assets/js/bootstrap-datepicker.js"></script>
+  <link href="../assets/css/datepicker.css" rel="stylesheet">
+  <script>
+     
+  </script>
+</body>
+</html>

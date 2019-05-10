@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>Acceso</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <link rel="icon" type="image/png" href="/images/favicon.png">
+      <!-- CSS -->
+      <link rel="stylesheet" href="/assets/css/bootstrap.css" media="screen">
+      <link rel="stylesheet" href="/assets/css/custom.min.css">
+      <link rel="stylesheet" href="/assets/css/fontawesome.css">
+      <!-- necesita /webfonts -->
+      <link rel="stylesheet" href="/assets/css/loading.css" media="all" type="text/css" />
+      <link rel="stylesheet" href="/assets/css/alertify.min.css" />
+      <link rel="stylesheet" href="/assets/css/alertify-default.min.css" />
+      <link rel="stylesheet" href="/assets/css/alertify-semantic.min.css" />
+    
+      <!-- JavaScript -->
+      <script src="/assets/js/main.js"></script>
+      <script src="/assets/js/jquery.min.js"></script>
+      <script src="/assets/js/popper.min.js"></script>
+      <script src="/assets/js/bootstrap.min.js"></script>
+      <script src="/assets/js/custom.js"></script>
+      <script src="/assets/js/alertify.min.js"></script>
+      <script src="/assets/js/vue.js"></script>
+      <!--<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>-->
+    </head>
+    
+    <body>
+      <div id="app">
+        <div id="loading" v-if="loading">
+          <div class="location_indicator"><img src="/images/logo.jpg" alt=""></div>
+        </div>
+    
+        <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+          <a class="navbar-brand d-none d-lg-block d-xl-block" href="#">
+            <img src="/images/logo.jpg" width="40px" class="img-responsive img-circle" alt="logo image">
+          </a>
+    
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+    
+          <a v-if="login" class="navbar-brand d-block d-lg-none d-xl-none" href="#">
+            <img src="/images/logo.jpg" width="40px" class="img-responsive img-circle" alt="logo image">
+          </a>
+    
+          <div v-if="!login" class="d-block d-lg-none d-xl-none">
+            <div style="color: #fff;" class="dropdown-toggle mr-md-2" id="bd-versions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <img src="/images/default_avatar_male.jpg" width="40px" class="img-responsive img-circle" alt="profile image"> {{nombreUsuario}}
+            </div>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="bd-versions">
+              <a class="dropdown-item" href="/mi_perfil">Mi Perfil</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#" @click="cerrarSesion()">Cerrar Sesión</a>
+            </div>
+          </div>
+    
+          <div class="collapse navbar-collapse" id="navbarColor01">
+            <ul class="navbar-nav mr-auto" v-if="funcionalidades.length > 0">
+              <template v-for="funcionalidad in funcionalidades">
+                <li class="nav-item active" v-if="urlActual == funcionalidad.url">
+                  <a class="nav-link" :href="funcionalidad.url">{{funcionalidad.descripcion}}</a>
+                </li>
+                <li class="nav-item" v-else>
+                  <a class="nav-link" :href="funcionalidad.url">{{funcionalidad.descripcion}}</a>
+                </li>
+              </template>
+              <li class="nav-item">
+                  <a class="nav-link" href="#"  @click="cerrarSesion()">Cerrar Sesión</a>
+              </li>
+            </ul>
+            <template v-if="login">
+              <button 
+                style="margin-left:3px;"
+                class="btn btn-secondary btn-sm"  
+                type="button" class="btn btn-primary" 
+                data-toggle="modal" 
+                data-target="#modalLogin">
+                Iniciar Sesión
+              </button>
+            </template>
+            <template v-else>
+              <a class="navbar-brand d-none d-lg-block d-xl-block" href="/mi_perfil" title="Ir a mi perfil" data-original-title="Tooltip on bottom">
+                <img src="/images/default_avatar_male.jpg" width="40px" class="img-responsive img-circle" alt="profile image">
+              </a>
+              
+              <ul class="navbar-nav flex-row ml-md-auto " style="margin-left: 2px !important;">
+                <li class="nav-item dropdown d-none d-lg-block d-xl-block">
+                  <a class="nav-item nav-link dropdown-toggle mr-md-2" href="#" id="bd-versions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{nombreUsuario}}
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-right" aria-labelledby="bd-versions">
+                    <a class="dropdown-item" href="/mi_perfil">Mi Perfil</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" @click="cerrarSesion()">Cerrar Sesión</a>
+                  </div>
+                </li>
+              </ul>
+            </template>
+          </div>
+        </nav>
+    
+        <div class="container" style="margin-top:80px;margin-bottom:100px">
+            <div class="frm-pred">
+                <div class="form-horizontal">
+                    <legend class="text-center header">Registro de accesos</legend>
+                    
+                    <div class="form-group">
+                      <label for="txttipoacceso"><b>Tipo Acceso</b></label><br>
+                      <select id="txttipoacceso" class="form-control" v-model.trim="datosAcceso.tipoAcceso" @change="ponerFocus()">
+                        <template v-for="tipoAcceso in tipoAccesos">
+                          <option :value="tipoAcceso.id">{{tipoAcceso.descripcion}}</option>  
+                        </template>
+                      </select>  
+                    </div>
+                    <br>
+                    
+                    <div class="form-group">
+                      <label><b>El registro se realiza dentro del horario establecido?</b></label><br>
+                      <input type="radio" id="si" value="1" v-model.trim="datosAcceso.puntualidad" @change="cargarAcudiente();ponerFocus()">
+                      <label for="si">Si</label><br>
+                      <input type="radio" id="no" value="0" v-model.trim="datosAcceso.puntualidad" @change="cargarAcudiente();ponerFocus()">
+                      <label for="no">No</label>
+                    </div>
+                    <br>
+                    
+                    <div class="form-group">
+                      <label><b>Registrar por</b></label><br>
+                      <input type="radio" id="one" value="1" v-model.trim="datosAcceso.tipoBusqueda" @change="cargarAcudiente();ponerFocus()">
+                      <label for="one">Código</label><br>
+                      <input type="radio" id="two" value="2" v-model.trim="datosAcceso.tipoBusqueda" @change="cargarAcudiente();ponerFocus()">
+                      <label for="two">Documento</label>
+                    </div>
+                    <br>
+                    
+                    <div class="form-group" v-if="datosAcceso.tipoBusqueda==1">
+                      <label for="txtcodigo"><b>Código *</b></label>
+                      <input type="text" class="form-control" id="txtcodigo" @keyup = "if(event.keyCode != 13&&datosAcceso.puntualidad==0) cargarAcudiente()" @keyup.13="registrarAcceso()" v-model.trim="datosAcceso.codigo" autocomplete="off">
+                    </div>
+                    
+                    <div class="form-group" v-else-if="datosAcceso.tipoBusqueda==2">
+                      <label for="txtdocumento"><b>Documento *</b></label>
+                      <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                          <div class="input-group-text">
+                            <select v-model.trim="datosAcceso.tipoDocumento" @change="cargarAcudiente();ponerFocus()">
+                              <template v-for="tipoDocumento in tipoDocumentos">
+                                <option :value="tipoDocumento.id">{{tipoDocumento.abreviacion}}</option>  
+                              </template>
+                            </select>
+                          </div>
+                        </div>
+                        <input id="txtdocumento" type="text" class="form-control" v-model.trim="datosAcceso.documento" @keyup = "if(event.keyCode != 13&&datosAcceso.puntualidad==0) cargarAcudiente()" @keyup.13="registrarAcceso()" autocomplete="off">
+                      </div>
+                    </div>
+                    
+                    
+                    <div v-if="datosAcceso.puntualidad==0">
+                      <br>
+                      <label><b>Acudiente *</b></label><br>
+                      <div v-if="acudientes.listaAcudientes.length>0" class="form-group">
+                        <template v-for="acudiente in acudientes.listaAcudientes">
+                          <input type="radio" :id="'divac'+acudiente.id" :value="acudiente.id" v-model.trim="datosAcceso.acudiente">
+                          <label :for="'divac'+acudiente.id">{{acudiente.nombre}}</label><br> 
+                        </template>  
+                      </div>
+                      <div v-else class="form-group">
+                        <p><b style="color:#ff0000">{{acudientes.mensaje}}</b></p>
+                      </div>
+                      <div v-if="acudientes.registrado==1">
+                        <button 
+                          style="margin-left:3px;"
+                          class="btn btn-secondary btn-sm"  
+                          type="button" class="btn btn-primary" 
+                          data-toggle="modal" 
+                          @click="abrirModal()">
+                          Nuevo acudiente
+                        </button>  
+                      </div>
+                    </div>
+                    <br>
+                    
+                    <div class="form-group">
+                      <label for="txtobservaciones"><b>Observaciones <i v-if="datosAcceso.puntualidad==0">*</i></b></label>
+                      <textarea class="form-control" id="txtobservaciones" v-model.trim="datosAcceso.observaciones" autocomplete="off"></textarea>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary btn-sm" @click="registrarAcceso()">Registrar</button>
+                    
+                  </div>
+            </div>
+        </div>
+        
+    
+        <div v-html="footer" class="container" style="background-color: #eee; max-width: 100%;">
+    
+        </div>
+        
+        <!-- Modal acudiente -->
+        <div class="modal fade" id="modalAcudiente" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Registrar acudiente</h5>
+                <button type="button" id="closeModalLoging" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form>
+                  <div class="form-group">
+                    <label>Nombres</label>
+                    <input type="text" class="form-control" v-model.trim="datosAcudiente.nombres" placeholder="Escriba el nombre">
+                  </div>
+                  <div class="form-group">
+                    <label>Apellidos</label>
+                    <input type="text" class="form-control" v-model.trim="datosAcudiente.apellidos" placeholder="Escriba el apellido">
+                  </div>
+                  <div class="form-group">
+                    <label>Tipo Documento</label>
+                    <select class="form-control" v-model.trim="datosAcudiente.tipoDocumento">
+                      <template v-for="tipoDocumento in tipoDocumentos">
+                        <option :value="tipoDocumento.id">{{tipoDocumento.descripcion}}</option>  
+                      </template>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Documento</label>
+                    <input type="text" class="form-control" v-model.trim="datosAcudiente.documento" placeholder="Escriba la contraseña">
+                  </div>
+                  <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="text" class="form-control" v-model.trim="datosAcudiente.telefono" placeholder="Escriba la contraseña">
+                  </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary btn-sm" @click="registrarAcudiente()">Registrar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!--fin modal-->
+        
+      </div>
+      <!-- fin #app -->
+    
+      <script>
+        var app = new Vue({
+          el: '#app',
+          data: {
+            urlActual: '/acceso',
+            login: true,
+            loading: true,
+            usuario: '',
+            nombreUsuario: '',
+            funcionalidades: [],
+            tipoDocumentos:[],
+            tipoAccesos:[],
+            datosAcudiente:{
+              nombres:'',
+              apellidos:'',
+              tipoDocumento:'1',
+              documento:'',
+              telefono:''
+            },
+            acudientes:{
+              listaAcudientes: [],
+              mensaje: '',
+              registrado:'0'
+            },
+            datosAcceso:{
+              tipoDocumento:'2',
+              documento:'',
+              codigo:'',
+              tipoAcceso:'1',
+              tipoBusqueda:'1',
+              puntualidad:'1',
+              acudiente:'',
+              observaciones:''
+            },
+            footer: '<p>footer</p>'
+          },
+          created: function() {
+            this.listarFuncionalidades()
+            this.cargarTipoDocumento()
+            this.cargarTipoAcceso()
+          },
+          mounted: function() {
+            this.ponerFocus()  
+          },
+          methods: {
+            cargarAcudiente: function() {
+              var self = this
+              self.datosAcceso.acudiente = '';
+              if(self.datosAcceso.tipoBusqueda==1){
+                self.datosAcceso.tipoDocumento = 2;
+                self.datosAcceso.documento = "";
+              }
+              else{
+                self.datosAcceso.codigo=""; 
+              }
+              var frm = {
+                codigo:self.datosAcceso.codigo,
+                tipoDocumento:self.datosAcceso.tipoDocumento,
+                documento:self.datosAcceso.documento
+              }
+              if(self.datosAcceso.puntualidad=="0"){
+                $.post(url_servidor + "/usuario/listarAcudiente.php", frm, function(data) {
+                  if (data.estado == "OK") {
+                    self.acudientes.listaAcudientes = data.acudientes
+                    self.acudientes.registrado = data.registrado
+                  }
+                  else {
+                    self.acudientes.listaAcudientes = data.acudientes
+                    self.acudientes.mensaje = data.mensaje
+                    self.acudientes.registrado = data.registrado
+                  }
+                }, "json");
+              }
+            },
+            cargarTipoAcceso: function() {
+              var self = this
+              var frm = { }
+              $.post(url_servidor + "/tipo_acceso/listar.php", frm, function(data) {
+                if (data.estado == "OK") {
+                  self.tipoAccesos = data.tipoAccesos 
+                }
+                else {
+                  self.tipoAccesos = data.tipoAccesos   
+                }
+              }, "json");
+            },
+            cargarTipoDocumento: function() {
+              var self = this
+              var frm = { }
+              $.post(url_servidor + "/tipo_documento/listar.php", frm, function(data) {
+                if (data.estado == "OK") {
+                  self.tipoDocumentos = data.tipoDocumentos
+                }
+                else {
+                  self.tipoDocumentos = data.tipoDocumentos   
+                }
+              }, "json");
+            },
+            cerrarSesion: function() {
+              var self = this
+              self.loading = true
+              var frm = {}
+              $.post(url_servidor + "/usuario/logout.php", frm, function(data) {
+                if (data.estado == "OK") {
+                  self.listarFuncionalidades()
+                }
+              }, "json");
+            },
+            listarFuncionalidades: function() {
+              var self = this
+              var frm = {urlActual:self.urlActual}
+              self.loading = true
+              $.post(url_servidor+"/funcionalidad/listar.php", frm, function(data) {
+                if (data.estado == "OK") {
+                  self.funcionalidades = data.funcionalidades
+                  self.nombreUsuario = data.nombreUsuario
+                  self.login = data.login
+                  self.footer = data.footer
+                  self.loading = false;
+                }
+                else {
+                  location.href="/";
+                }
+              }, "json");
+            },
+            registrarAcceso: function(){
+              var self = this
+              if(self.datosAcceso.tipoBusqueda==1){
+                self.datosAcceso.tipoDocumento = 2;
+                self.datosAcceso.documento = "";
+              }
+              else{
+                self.datosAcceso.codigo=""; 
+              }
+              var frm = self.datosAcceso
+              if(frm.codigo==""&&frm.documento==""){
+                alertify.error("Escriba un codigo o número de documento válidos")
+              }
+              else
+              if(frm.puntualidad==0&&frm.acudiente==""){
+                alertify.error("Seleccione un acudiente")  
+              }
+              else
+              if(frm.puntualidad==0&&frm.observaciones==""){
+                alertify.error("Escriba una observacion")  
+              }
+              else{
+                $.post(url_servidor+"/acceso/registrar.php", frm, function(data) {
+                  if (data.estado == "OK") {
+                    self.datosAcceso.tipoDocumento='2'
+                    self.datosAcceso.documento=''
+                    self.datosAcceso.codigo=''
+                    self.datosAcceso.puntualidad='1'
+                    self.datosAcceso.acudiente=''
+                    self.datosAcceso.observaciones=''
+                    self.acudientes.listaAcudientes=[]
+                    self.acudientes.mensaje=''
+                    self.acudientes.registrado='0'
+                    alertify.success(data.mensaje);
+                    self.ponerFocus()
+                  }
+                  else {
+                    alertify.error(data.mensaje);
+                    self.ponerFocus()
+                  }
+                }, "json");  
+              }
+            },
+            registrarAcudiente: function(){
+              var self = this
+              if(self.datosAcceso.tipoBusqueda==1){
+                self.datosAcceso.tipoDocumento = 2;
+                self.datosAcceso.documento = "";
+              }
+              else{
+                self.datosAcceso.codigo=""; 
+              }
+              var frm = {
+                tipoBusqueda: self.datosAcceso.tipoBusqueda,
+                codigo: self.datosAcceso.codigo,
+                tipoDocumento: self.datosAcceso.tipoDocumento,
+                documento: self.datosAcceso.documento,
+                tipoDocumentoAcudiente: self.datosAcudiente.tipoDocumento,
+                documentoAcudiente: self.datosAcudiente.documento,
+                nombresAcudiente: self.datosAcudiente.nombres,
+                apellidosAcudiente: self.datosAcudiente.apellidos,
+                telefonoAcudiente: self.datosAcudiente.telefono
+              }
+              if(frm.tipoBusqueda==1&&frm.codigo==""){
+                alertify.error("Escriba un codigo de usuario");
+              }
+              else
+              if(frm.tipoBusqueda==2&&(frm.tipoDocumento==""||frm.documento=="")){
+               alertify.error("Escriba un tipo y número de documento"); 
+              }
+              else
+              if(frm.nombresAcudiente==""){
+                alertify.error("Escriba un nombre de acudiente");
+              }
+              else
+              if(frm.apellidosAcudiente==""){
+                alertify.error("Escriba un apellido de acudiente");
+              }
+              else
+              if(frm.documentoAcudiente==""){
+                alertify.error("Escriba un número de documento del acudiente");
+              }
+              else
+              if(frm.telefonoAcudiente==""){
+                alertify.error("Escriba un teléfono de acudiente");
+              }
+              else{
+                alertify.confirm('Confirmar', '¿Desea registrar el acudiente?',
+                  function(){
+                    alertify.confirm().close();
+                    $.post(url_servidor+"/usuario/registrarAcudiente.php", frm, function(data) {
+                      if (data.estado == "OK") {
+                        self.datosAcudiente.nombres=''
+                        self.datosAcudiente.apellidos='',
+                        self.tipoDocumento='1'
+                        self.datosAcudiente.documento=''
+                        self.datosAcudiente.telefono=''
+                        self.cargarAcudiente();
+                        alertify.success(data.mensaje) 
+                        $("#modalAcudiente").modal('hide')
+                        self.ponerFocus()
+                      }
+                      else {
+                        alertify.error(data.mensaje)   
+                      }
+                    }, "json");
+                  },
+                  function(){
+                    alertify.confirm().close();
+                  }
+                ).set('labels', {ok:'Aceptar', cancel:'Cancelar'});
+              }
+            },
+            abrirModal: function(){
+              var self = this;
+              self.datosAcudiente.nombres=''
+              self.datosAcudiente.apellidos='',
+              self.tipoDocumento='1'
+              self.datosAcudiente.documento=''
+              self.datosAcudiente.telefono=''
+              $("#modalAcudiente").modal("show");
+            },
+            ponerFocus: function(){
+              var self = this;
+              if(self.datosAcceso.tipoBusqueda==1){
+                setTimeout(function(){$("#txtcodigo").focus();}, 250);
+              }
+              else{
+                setTimeout(function(){$("#txtdocumento").focus();}, 250); 
+              }
+            }
+          }
+        })
+      </script>
+    
+    </body>
+</html>
